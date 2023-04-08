@@ -27,7 +27,7 @@ class BoardUsedException(BoardException):
         return ' Вы уже стреляли в эту клетку! '
 
 
-class BoardWrongShipException(Exception):
+class BoardWrongShipException(BoardException):
     pass
 
 
