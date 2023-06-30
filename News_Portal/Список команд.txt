@@ -1,0 +1,75 @@
+from newsportal.models import *
+User.objects.create_user('username')
+User.objects.create_user('username1')
+User.objects.create_user('username2')
+User.objects.create_user('username3')
+
+user = User.objects.get(username = 'username')
+user1 = User.objects.get(username = 'username1')
+user2 = User.objects.get(username = 'username2')
+user3 = User.objects.get(username = 'username3')
+Author.objects.create(user = user)
+Author.objects.create(user = user1)
+
+Category.objects.create(category_name = 'Политика')
+Category.objects.create(category_name = 'Спорт')
+Category.objects.create(category_name = 'Искусство')
+Category.objects.create(category_name = 'Погода')
+
+author1 = Author.objects.get(user = 1)
+author2 = Author.objects.get(user = 2)
+Post.objects.create(news_or_post = 'NE', author = author1)
+Post.objects.create(author = author2)
+Post.objects.create(author = author2)
+
+category1 = Category.objects.get(category_name = 'Политика')
+category2 = Category.objects.get(category_name = 'Спорт')
+category3 = Category.objects.get(category_name = 'Искусство')
+category4 = Category.objects.get(category_name = 'Погода')
+post1 = Post.objects.all().first()
+post2 = Post.objects.all()[1]
+post3 = Post.objects.all()[2]
+post1.categories.add(category1, category4)
+post2.categories.add(category1, category3)
+post3.categories.add(category2, category3)
+
+comment1 = Comment.objects.create(text = 'Отличные новости, каждое утро смотрю!!!', post = post1, user = user2)
+comment2 = Comment.objects.create(text = 'Ужасные новости, каждое утро не смотрю!!!', post = post1, user = user3)
+comment3 = Comment.objects.create(text = 'Познавательная статья, всем рекомендую!', post = post3, user = user2)
+comment4 = Comment.objects.create(text = 'Без комментариев', post = post2, user = user3)
+comment5 = Comment.objects.create(post = post1, user = user)
+comment6 = Comment.objects.create(post = post1, user = user1)
+
+post1.like()
+post2.like()
+post3.like()
+post2.like()
+post3.like()
+post2.like()
+post1.like()
+post2.dislike()
+post3.dislike()
+
+comment1.like()
+comment1.like()
+comment2.like()
+comment3.like()
+comment4.like()
+comment4.like()
+comment3.like()
+comment2.like()
+comment1.dislike()
+comment2.dislike()
+
+author1.update_rating()
+author2.update_rating()
+
+a = Author.objects.order_by('-rating')[:1]
+a.values('user__username', 'rating')
+
+b = Post.objects.order_by('-rating')[:1]
+b.values('time_in', 'author__user__username', 'rating', 'title')
+b[0].preview()
+
+c = Comment.objects.filter(post = b[0])
+c.values('time_in', 'user__username', 'rating', 'text')
