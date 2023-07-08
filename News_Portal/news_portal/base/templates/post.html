@@ -17,7 +17,7 @@ Post
           </tr>
 
           <tr>
-              <td> {{ post.title }} </td>
+              <td> {{ post.title|censor }} </td>
               <td> {{ post.time_in|current_time }} </td>
               <td> {{ post.text|censor }} </td>
           </tr>
