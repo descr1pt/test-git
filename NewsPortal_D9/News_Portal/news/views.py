@@ -3,10 +3,14 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.shortcuts import get_object_or_404, redirect
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from .filters import PostFilter
 from .forms import NewsForm, ArticleForm
-from .models import Post, Category
+from .models import Post, Category, PostCategory
 
 """
 get_object_or_404 - используется для получения объекта из базы данных по заданным условиям. 
@@ -66,6 +70,24 @@ class NewsDelete(PermissionRequiredMixin, LoginRequiredMixin, DeleteView):
     template_name = 'news_delete.html'
     success_url = '/'
     permission_required = ('news.delete_post',)
+
+
+class CategoryList(ListView):
+    model = Category
+    template_name = 'categories.html'
+    context_object_name = 'categories'
+
+
+class PostOfCategoryList(ListView):
+    model = Post
+    ordering = '-id'
+    template_name = 'news/news_list.html'
+    context_object_name = 'PostOfCategoryList'
+
+    def get_queryset(self):
+        self.queryset = Post.objects.get(
+            pk=self.kwargs['pk']).postCategory.all()
+        return super().get_queryset()
 
 
 # ====== Статьи ========================================================================================================
@@ -132,3 +154,19 @@ class Search(ListView):
         context['filter'] = self.filterset
         context['categories'] = Category.objects.all()  # Получение всех категорий
         return context
+
+
+def subscribe_to_category(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.user.is_authenticated:
+        category.subscribers.add(request.user)
+    return redirect('posts_of_categories_list', pk=pk)
+
+
+def send_news_notification(user_email, category, news):
+    subject = f"Новая статья в категории {category}"
+    html_message = render_to_string('email/notification.html',
+                                    {'category': category, 'news': news})
+    plain_message = strip_tags(html_message)
+    send_mail(subject, plain_message, 'your_email@example.com',
+              [user_email], html_message=html_message)

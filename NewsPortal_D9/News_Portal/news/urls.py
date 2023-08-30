@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
-from .views import NewsList, NewsDetail, Search, NewsEdit, NewsDelete, ArticleCreate, ArticleEdit, ArticleDelete
+from .views import NewsList, NewsDetail, Search, NewsEdit, NewsDelete, ArticleCreate, ArticleEdit, ArticleDelete,\
+    CategoryList, PostOfCategoryList
 
 app_name = 'news'
 
@@ -28,4 +29,8 @@ urlpatterns = [
     path('articles/<int:pk>/edit/', ArticleEdit.as_view(), name='article_edit'),  # URL-шаблон для редактирования статьи
 
     path('articles/<int:pk>/delete/', ArticleDelete.as_view(), name='article_delete'),  # URL-шаблон для удаления статьи
+
+    path('category/', CategoryList.as_view(), name='categories'),
+
+    path('category/<int:pk>/', PostOfCategoryList.as_view(), name='posts_of_categories_list'),
 ]
