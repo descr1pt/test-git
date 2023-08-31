@@ -2,7 +2,7 @@ from django.urls import path
 from .views import IndexView
 import news
 from news.views import NewsList, NewsDetail, Search, NewsEdit, NewsDelete, ArticleCreate, ArticleEdit, ArticleDelete,\
-    CategoryList, PostOfCategoryList, subscribe_to_category
+    CategoryListView, subscribe, CategoryList
 
 app_name = 'news'
 
@@ -33,9 +33,9 @@ urlpatterns = [
 
     path('articles/<int:pk>/delete/', ArticleDelete.as_view(), name='article_delete'),  # URL-шаблон для удаления статьи
 
-    path('category/', CategoryList.as_view(), name='categories'),
+    path('news/category/', CategoryList.as_view(), name='categories'),
 
-    path('category/<int:pk>/', PostOfCategoryList.as_view(), name='posts_of_categories_list'),
+    path('news/category/<int:pk>/', CategoryListView.as_view(), name='category_list'),
 
-    path('category/<int:pk>/subscribe', subscribe_to_category, name='subscribe_to_category'),
+    path('news/category/<int:pk>/subscribe/', subscribe, name='subscribe'),
 ]

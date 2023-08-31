@@ -36,8 +36,7 @@ class Author(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    subscribers = models.ManyToManyField(User,
-                                         through='CategorySubscriber')
+    subscribers = models.ManyToManyField(User, blank=True, null=True, related_name='categories')
 
     # для отображения имён вместо объектов
     def __str__(self):
@@ -84,9 +83,11 @@ class Post(models.Model):
         return self.title
 
     # какую страницу нужно открыть после создания
-    @staticmethod
-    def get_absolute_url():
-        return reverse('Start')
+    # @staticmethod
+    # def get_absolute_url():
+    #     return reverse('Start')
+    def get_absolute_url(self):
+        return f'/news/{self.id}'
 
 
 class PostCategory(models.Model):

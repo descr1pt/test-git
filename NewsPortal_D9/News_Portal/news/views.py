@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.contrib.auth.decorators import login_required
 
 from .filters import PostFilter
 from .forms import NewsForm, ArticleForm
@@ -76,18 +77,18 @@ class CategoryList(ListView):
     model = Category
     template_name = 'categories.html'
     context_object_name = 'categories'
-
-
-class PostOfCategoryList(ListView):
-    model = Post
-    ordering = '-id'
-    template_name = 'news/news_list.html'
-    context_object_name = 'PostOfCategoryList'
-
-    def get_queryset(self):
-        self.queryset = Post.objects.get(
-            pk=self.kwargs['pk']).postCategory.all()
-        return super().get_queryset()
+#
+#
+# class CategoryDetail(DetailView):
+#     model = Category
+#     template_name = 'category_detail.html'
+#     context_object_name = 'category'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         category_object = self.object.id
+#         context['post'] = Post.objects.filter(postCategory=category_object)
+#         return context
 
 
 # ====== Статьи ========================================================================================================
@@ -156,17 +157,43 @@ class Search(ListView):
         return context
 
 
-def subscribe_to_category(request, pk):
-    category = get_object_or_404(Category, pk=pk)
-    if request.user.is_authenticated:
-        category.subscribers.add(request.user)
-    return redirect('posts_of_categories_list', pk=pk)
+# def subscribe_to_category(request, pk):
+#     category = get_object_or_404(Category, pk=pk)
+#     if request.user.is_authenticated:
+#         category.subscribers.add(request.user)
+#     return redirect('posts_of_categories_list', pk=pk)
+#
+#
+# def send_news_notification(user_email, category, news):
+#     subject = f"Новая статья в категории {category}"
+#     html_message = render_to_string('email/notification.html',
+#                                     {'category': category, 'news': news})
+#     plain_message = strip_tags(html_message)
+#     send_mail(subject, plain_message, 'your_email@example.com',
+#               [user_email], html_message=html_message)
 
 
-def send_news_notification(user_email, category, news):
-    subject = f"Новая статья в категории {category}"
-    html_message = render_to_string('email/notification.html',
-                                    {'category': category, 'news': news})
-    plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, 'your_email@example.com',
-              [user_email], html_message=html_message)
+class CategoryListView(NewsList):
+    model = Post
+    template_name = 'category_list.html'
+    context_object_name = 'category_news_list'
+
+    def get_queryset(self):
+        self.category = get_object_or_404(Category, id=self.kwargs['pk'])
+        queryset = Post.objects.filter(postCategory=self.category).order_by('-creationDate')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_subscriber'] = self.request.user not in self.category.subscribers.all()
+        context['category'] = self.category
+        return context
+
+@login_required
+def subscribe(request, pk):
+    user = request.user
+    category = Category.objects.get(id=pk)
+    category.subscribers.add(user)
+
+    message = 'Вы успешно подписались на рассылку'
+    return render(request, 'subscribe.html', {'category': category, 'message': message})

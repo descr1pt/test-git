@@ -5,12 +5,12 @@
 {% block content %}
 <h1>Все категории</h1>
 {% for category in categories %}
-    <h2><a href="{% url 'news:posts_of_categories_list' category.id %}">
+    <h2><a href="{% url 'news:category_list' category.id %}">
         {{ category.name }}
     </a>{% if user in category.subscribers.all %}
         <a href="#" class="btn btn-success"> Подписаны</a>
         {% else %}
-        <a href="{% url 'news:posts_of_categories_list' category.id %}" class="btn btn-primary"> Подписаться</a>
+        <a href="{% url 'news:subscribe' category.id %}" class="btn btn-primary"> Подписаться</a>
         {% endif %}
     </h2>
 {% endfor %}
