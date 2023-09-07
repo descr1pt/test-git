@@ -1,0 +1,17 @@
+{% extends 'flatpages/default.html' %}
+
+{% load cenzura %}
+
+{% block content %}
+    <h1> Категория </h1>
+    {% for item in posts %}
+    <tr>
+        <td>{{ item.title | censor }}</td>
+        <td>{{ item.created_time | date:'d.m.Y' }}</td>
+        <td>{{ item.text | truncatechars:20  | censor }}</td>
+    </tr>
+    {% endfor %}
+
+
+
+{% endblock %}
