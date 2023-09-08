@@ -13,6 +13,10 @@ from .filters import PostFilter
 from .forms import NewsForm, ArticleForm
 from .models import Post, Category, PostCategory
 
+from django.http import HttpResponse
+from django.views import View
+from .tasks import send_notifications
+
 """
 get_object_or_404 - используется для получения объекта из базы данных по заданным условиям. 
 Если объект не найден, то функция вызывает исключение `Http404`, и возвращает страницу с ошибкой 404.
@@ -55,6 +59,7 @@ class NewsCreate(PermissionRequiredMixin, LoginRequiredMixin, CreateView):
         post.type = 'NW'
         post.author = self.request.user.author
         post.save()
+        send_notifications.delay(post.pk)
         return super().form_valid(form)
 
 

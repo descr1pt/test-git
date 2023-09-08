@@ -7,6 +7,7 @@ from news.views import NewsList, NewsDetail, Search, NewsEdit, NewsDelete, Artic
 app_name = 'news'
 
 urlpatterns = [
+
     path('', IndexView.as_view()),
 
     path('', news.views.Start_Padge, name='Start'),  # URL-шаблон Стартовой страницы
