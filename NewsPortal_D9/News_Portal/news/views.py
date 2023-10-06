@@ -4,18 +4,16 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from django.contrib.auth.decorators import login_required
 
 from .filters import PostFilter
 from .forms import NewsForm, ArticleForm
-from .models import Post, Category, PostCategory
+from .models import Post, Category
 
-from django.http import HttpResponse
-from django.views import View
 from .tasks import send_notifications
+
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 """
 get_object_or_404 - используется для получения объекта из базы данных по заданным условиям. 
@@ -40,11 +38,29 @@ class NewsList(ListView):
         queryset = super().get_queryset().filter(type='NW')
         return queryset.order_by('-creationDate')
 
+    def get_object(self, *args, **kwargs):
+        obj = cache.get(f'product-{self.kwargs["pk"]}', None)
+
+        if not obj:
+            obj = super().get_object(queryset=self.queryset)
+            cache.set(f'product-{self.kwargs["pk"]}', obj)
+
+        return obj
+
 
 class NewsDetail(DetailView):
     model = Post
     template_name = 'news/news_detail.html'
     context_object_name = 'post'
+
+    def get_object(self, *args, **kwargs):
+        obj = cache.get(f'product-{self.kwargs["pk"]}', None)
+
+        if not obj:
+            obj = super().get_object(queryset=self.queryset)
+            cache.set(f'product-{self.kwargs["pk"]}', obj)
+
+        return obj
 
 
 class NewsCreate(PermissionRequiredMixin, LoginRequiredMixin, CreateView):
@@ -82,21 +98,10 @@ class CategoryList(ListView):
     model = Category
     template_name = 'categories.html'
     context_object_name = 'categories'
-#
-#
-# class CategoryDetail(DetailView):
-#     model = Category
-#     template_name = 'category_detail.html'
-#     context_object_name = 'category'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         category_object = self.object.id
-#         context['post'] = Post.objects.filter(postCategory=category_object)
-#         return context
 
 
 # ====== Статьи ========================================================================================================
+@cache_page(60)
 def article_list(request):
     article = Post.objects.filter(type='AR').order_by('-creationDate')  # Фильтруем только статьи
     # и сортируем по убыванию даты
@@ -106,6 +111,7 @@ def article_list(request):
     return render(request, 'news/article_list.html', {'articles': articles})
 
 
+@cache_page(60 * 5)
 def article_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     return render(request, 'news/article_detail.html', {'post': post})

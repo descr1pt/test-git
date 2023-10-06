@@ -4,6 +4,8 @@ import news
 from news.views import NewsList, NewsDetail, Search, NewsEdit, NewsDelete, ArticleCreate, ArticleEdit, ArticleDelete,\
     CategoryListView, subscribe, CategoryList
 
+from django.views.decorators.cache import cache_page
+
 app_name = 'news'
 
 urlpatterns = [
